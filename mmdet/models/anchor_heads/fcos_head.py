@@ -124,6 +124,10 @@ class FCOSHead(nn.Module):
 
         for reg_layer in self.reg_convs:
             reg_feat = reg_layer(reg_feat)
+
+        if torch.onnx.is_in_onnx_export():
+            bbox_pred = scale(self.fcos_reg(reg_feat))
+            return torch.sigmoid(cls_score), bbox_pred, torch.sigmoid(centerness)
         # scale the bbox_pred of different level
         # float to avoid overflow when enabling FP16
         bbox_pred = scale(self.fcos_reg(reg_feat)).float().exp()
